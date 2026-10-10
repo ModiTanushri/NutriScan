@@ -17,7 +17,7 @@ def get_gemini_client():
 
 gemini_client=get_gemini_client()
 
-MODEL_NAME = "gemini-3.8-flash"
+MODEL_NAME = "gemini-3.5-flash-lite"
 
 def clean_whatsapp_text(text):
     if not text:
