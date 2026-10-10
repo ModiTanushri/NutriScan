@@ -69,7 +69,7 @@ if 'onboarded' not in st.session_state:
     
     if submitted:
         if not  name.strip() or not whatsapp_number.strip():
-            st.warning("Please enter your name and whatsapp number: ")
+            st.warning("Please enter your name and Telegram chat ID: ")
 
         else:
             st.session_state.name = name.strip( )
