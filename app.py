@@ -56,6 +56,7 @@ def ask_gemini(parts):
 if 'onboarded' not in st.session_state:
     st.title("NutriScan 🍱")
     st.caption("Snap it. Track it. Text yourself the result.")
+    st.caption("💡 Tip: upload a meal photo under 1 MB for a faster reply.")
 
     with st.form("onboarding_form"):
         name=st.text_input("Your name") 
