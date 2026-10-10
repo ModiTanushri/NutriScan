@@ -5,7 +5,6 @@ from google import genai
 from google.genai import types
 import streamlit as st 
 from prompts import SYSTEM_PROMPT,WELCOME_MESSAGE_TEMPLATE,SUMMARY_REQUEST_PROMPT
-from twilio.rest import Client as TwilioClient
 
 NutriScan_API_Key=st.secrets["NutriScan_API_Key"]
 TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
