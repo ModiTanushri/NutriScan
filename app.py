@@ -1,48 +1,34 @@
-import asyncio
-from telegram import Bot
 import json
+import re
+from urllib.parse import quote
+
+import streamlit.components.v1 as components
 from google import genai
 from google.genai import types
-import streamlit as st 
-from prompts import SYSTEM_PROMPT,WELCOME_MESSAGE_TEMPLATE,SUMMARY_REQUEST_PROMPT
+import streamlit as st
+from prompts import SYSTEM_PROMPT, WELCOME_MESSAGE_TEMPLATE, SUMMARY_REQUEST_PROMPT
 
-NutriScan_API_Key=st.secrets["NutriScan_API_Key"]
-TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
+NutriScan_API_Key = st.secrets["NutriScan_API_Key"]
+
 
 @st.cache_resource
 def get_gemini_client():
-    return genai.Client(api_key = NutriScan_API_Key)
+    return genai.Client(api_key=NutriScan_API_Key)
 
-
-
-gemini_client=get_gemini_client()
+gemini_client = get_gemini_client()
 
 MODEL_NAME = "gemini-3.5-flash-lite"
 
-def clean_whatsapp_text(text):
-    if not text:
-        return "No nutrition summary available."
-    text = " ".join(text.split())  #collapse whitespaces and newspaces
-    return text[:1500] + "..." if len(text) > 1500 else text
-
-def send_telegram(chat_id, user_name, summary):
-    try:
-        bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        text = f"Hi {user_name}! 👋\n\n{summary}"
-        asyncio.run(bot.send_message(chat_id=chat_id, text=text[:4000]))
-        return True, "sent"
-    except Exception as error:
-        return False, str(error)
 
 def render_message(message):
     with st.chat_message(message["role"]):
-        if message["kind"]=="text":
+        if message["kind"] == "text":
             st.write(message["content"])
-        elif message["kind"]=="image":
+        elif message["kind"] == "image":
             st.image(message["content"])
 
 def add_message(role, kind, content):
-    st.session_state.messages.append({"role":role, "kind":kind, "content":content})
+    st.session_state.messages.append({"role": role, "kind": kind, "content": content})
     render_message(st.session_state.messages[-1])
 
 def ask_gemini(parts):
@@ -51,31 +37,32 @@ def ask_gemini(parts):
     except Exception as error:
         return f"Sorry, something went wrong : {error}"
 
-#step 1: onboarding(username and phone)
+def trim_for_link(text, limit=1200):
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    return cut.rsplit("\n", 1)[0] + "\n…(full summary in NutriScan)"
+
+#step 1: onboarding (name + WhatsApp number)
 
 if 'onboarded' not in st.session_state:
     st.title("NutriScan 🍱")
-    st.caption("Snap it. Track it. Text yourself the result.")
+    st.caption("Snap it. Track it. Get the result on WhatsApp.")
     st.caption("💡 Tip: upload a meal photo under 1 MB for a faster reply.")
 
     with st.form("onboarding_form"):
-        name=st.text_input("Your name") 
-        whatsapp_number=st.text_input(
-            "Telegram Chat ID",
-            placeholder="Enter your Telegram Chat ID",
-            help="This is the number NutriScan will text your summary to."
-        )
+        name = st.text_input("Your name")
+        whatsapp_number = st.text_input("Your WhatsApp number (with country code, e.g. 919876543210)")
+        submitted = st.form_submit_button("Let's go 👉")
 
-        submitted=st.form_submit_button("Let's go 👉")
-    
     if submitted:
-        if not  name.strip() or not whatsapp_number.strip():
-            st.warning("Please enter your name and Telegram chat ID: ")
-
+        digits = re.sub(r"\D", "", whatsapp_number)
+        if not name.strip() or len(digits) < 10:
+            st.warning("Please enter your name and a valid WhatsApp number with country code.")
         else:
-            st.session_state.name = name.strip( )
-            st.session_state.whatsapp_number = whatsapp_number.strip( )
-            #activate my ai 
+            st.session_state.name = name.strip()
+            st.session_state.whatsapp_number = digits
+            #activate my ai
             st.session_state.chat = gemini_client.chats.create(
                 model=MODEL_NAME,
                 config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
@@ -85,45 +72,46 @@ if 'onboarded' not in st.session_state:
             st.rerun()
     st.stop()
 
-
 #Create a chat interface
 
-header_col, button_col = st.columns([5, 2], vertical_alignment = "center")
+header_col, button_col = st.columns([5, 2], vertical_alignment="center")
 
 with header_col:
     st.title("NutriScan 🍱")
 
 with button_col:
-    send_disabled = len(st.session_state.messages) <= 2
-    if st.button(
-        "📤 Send to Telegram",
-        disabled=send_disabled,
-        help="Chat about at least one meal first" if send_disabled else None,
-        use_container_width=True,
-    ):
-        summary = None
-        with st.spinner("Summarizing your day..."):
-            try:
+    if st.button("📤 Send to WhatsApp", use_container_width=True):
+        if len(st.session_state.messages) <= 1:
+            st.warning("Chat about at least one meal first.")
+        else:
+            with st.spinner("Summarizing your day..."):
                 summary = ask_gemini([SUMMARY_REQUEST_PROMPT])
-            except Exception as e:
-                st.error(f"Couldn't create the summary: {e}")
-
-        if summary:
-            with st.spinner("Sending to Telegram..."):
-                success, info = send_telegram(
-                    st.session_state.whatsapp_number,
-                    st.session_state.name,
-                    summary[:1500],   
-                )
-            if success:
-                st.success("Sent! Check your Telegram 📲")
-                with st.expander("See what was sent"):
-                    st.write(summary)
+            if summary.startswith("Sorry, something went wrong"):
+                st.error(summary)
             else:
-                st.error(f"Couldn't send that: {info}")
+                st.session_state.summary = summary
+                st.session_state.wa_link = (
+                    f"https://wa.me/{st.session_state.whatsapp_number}?text={quote(trim_for_link(summary))}"
+                )
+                st.session_state.wa_open = True
+
+# opens WhatsApp automatically right after the summary is ready
+if st.session_state.get("wa_open"):
+    components.html(
+        f"<script>window.open({json.dumps(st.session_state.wa_link)}, '_blank');</script>",
+        height=0,
+    )
+    st.session_state.wa_open = False
+
+# backup, hidden in a collapsed box
+if st.session_state.get("wa_link"):
+    with st.expander("See the summary / WhatsApp didn't open?"):
+        st.write(st.session_state.summary)
+        st.link_button("Open WhatsApp", st.session_state.wa_link)
+        st.caption("📱 On a phone it opens WhatsApp directly. On a computer, log in to WhatsApp Web first, then press send.")
 
 st.caption(f"Logged in as {st.session_state.name} - updates go to {st.session_state.whatsapp_number}")
- 
+
 if not st.session_state.messages:
     add_message("assistant", "text", WELCOME_MESSAGE_TEMPLATE.format(name=st.session_state.name))
 else:
@@ -133,13 +121,14 @@ else:
 user_input = st.chat_input(
     "Ask a question, or attach a photo of your meal",
     accept_file=True,
-    file_type = ["jpg", "jpeg", "png"],
+    file_type=["jpg", "jpeg", "png"],
 )
 
 if user_input:
+    st.session_state.pop("wa_link", None)
     photo = user_input.files[0] if user_input.files else None
     text = user_input.text
-    parts = [ ]
+    parts = []
 
     if photo is not None:
         photo_bytes = photo.getvalue()
@@ -150,8 +139,8 @@ if user_input:
         parts.append(text)
     elif photo is not None:
         parts.append("What is this meal? Give me the calories and macros.")
- 
+
     with st.spinner("Crunching the numbers..."):
         answer = ask_gemini(parts)
     add_message("assistant", "text", answer)
-
+    st.rerun()
