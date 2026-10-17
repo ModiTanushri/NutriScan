@@ -15,7 +15,7 @@ Upload a photo of a meal or describe what you serve, get rough estimate of calor
 **Chat by texting:** Describe a meal like 'Rice with dal' or ask a question related to food .
 **Suggestions:** Get some tips to balance diet and to lead a healthy life.
 **Friendly and food focused:** If you ask unrelated to food, get a reply in polite way.
-**Summary:** One button sends a summary of our chat to Telegram for reference.
+**Summary:** One button sends a summary of our chat to WhatsApp for reference. 
 
 ##  Run it locally
 1. Clone this repository.
@@ -25,29 +25,18 @@ Upload a photo of a meal or describe what you serve, get rough estimate of calor
 
 
 ## How to use NutriScan?
-### Step 1: Get Telegram chat ID
-Chat ID is a number that get from a Telegram, you don't need to create create bot.
+1. Open https://nutriscan-01.streamlit.app
+2. Enter your **name** and your **WhatsApp number** with country code (for India, 91 followed by your 10 digits, like 919876543210), then click **Let's go**.
+3. Upload a meal photo or type what you ate.
+   - **Tip:** use a photo under 1 MB for a faster reply.
+4. Keep chatting about your meals as long as you like.
+5. Click **Send to WhatsApp**. NutriScan prepares your summary and opens WhatsApp with it already typed.
+6. Press **send** in WhatsApp. The message goes to your own chat.
+   - **On a phone:** it opens the WhatsApp app directly.
+   - **On a computer:** log in to WhatsApp Web or WhatsApp Desktop first.
 
-1: Open Telegram and search for **@userinfobot**, then press **Start**.
-2. It replies with your details. Copy the number next to **Id**. That is your chat ID.
+If WhatsApp doesn't open by itself, open the small box under the button (**See the summary / WhatsApp didn't open?**) and click **Open WhatsApp**.
 
-### Step 2: Start our bot (needed once)
-Telegram only lets a bot message you after you press Start.
-
-1. Open **@Our_NutriScan_bot** in Telegram.
-2. Press **Start**.
-
-### Step 3: Open the app
-1. Go to https://nutriscan-01.streamlit.app
-2. Enter your **name** and your **Telegram chat ID**, then start.
-
-### Step 4: Chat about your meals
-- Upload a meal photo, or type what you ate.
-- **Tip:** use a photo under 1 MB for a faster reply.
-- Read the estimates and tips in the reply.
-
-### Step 5: Send the summary to Telegram
-Chat about at least one meal, then click the **Send to Telegram** button. The summary arrives in your Telegram chat.
 
 ---
 
