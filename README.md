@@ -1,6 +1,6 @@
 # NutriScan 
 NutriScan is an AI-Based Nutrition buddy that helps to estimate calories and macros in our food.
-Upload a photo of a meal or describe what you serve, get rough estimate of calories and macros, tips for healthy life and send the chat summary to your Telegram.
+Upload a photo of a meal or describe what you serve, get rough estimate of calories and macros, tips for healthy life and send the chat summary to your WhatsApp.
 
 **Live App**: https://nutriscan-01.streamlit.app
 
@@ -8,7 +8,7 @@ Upload a photo of a meal or describe what you serve, get rough estimate of calor
 - Python
 - Streamlit
 - Google Gemini (chat and image understanding)
-- Telegram Bot API
+- WhatsApp click-to-chat link
 
 ## Features:
 **Photo analysis:** Upload a meal and get an analysis of calories, macros and tips for healthy life.
@@ -20,8 +20,8 @@ Upload a photo of a meal or describe what you serve, get rough estimate of calor
 ##  Run it locally
 1. Clone this repository.
 2. Install the packages: `pip install -r requirements.txt`
-3. Create `.streamlit/secrets.toml` with your Gemini API key and Telegram bot token, using the names that `app.py` reads.
-4. Run: `streamlit run app.py`
+3. Create `.streamlit/secrets.toml` with your Gemini API key, using the names that `app.py` reads.
+4. Run: `streamlit run app.py` or 'python -m streamlit run app.py'
 
 
 ## How to use NutriScan?
@@ -43,10 +43,11 @@ If WhatsApp doesn't open by itself, open the small box under the button (**See t
 ## Fault-finding
 | Problem | What to do |
 |---|---|
-| Summary doesn't arrive | Open our bot in Telegram and press **Start** first. |
-| "Chat not found" error | Check that your chat ID is the number from @userinfobot, with no spaces or letters. |
+| Message says to chat first | Chat about at least one meal, then click **Send to WhatsApp** again. |
+| WhatsApp doesn't open by itself | Your browser may have blocked the pop-up. Click the pop-up icon in the address bar and choose **Always allow**, or use the **Open WhatsApp** button in the small box. |
+| WhatsApp shows an invalid number | Enter your number with the country code and no `+` or spaces. |
+| The link doesn't open WhatsApp on a computer | Install WhatsApp Desktop or log in to web.whatsapp.com, then try again. |
 | Photo takes a long time | Use a smaller photo (under 1 MB). |
-| Button is greyed out | Chat about a meal first. The button turns on after a few messages. |
 
 ---
 
